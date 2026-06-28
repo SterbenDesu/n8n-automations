@@ -1,0 +1,471 @@
+{
+  "name": "Customer Account Health Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7dbdfd94-5bab-4143-9bba-f2c5690a7c56",
+              "name": "riskLevel",
+              "value": "At-Risk",
+              "type": "string"
+            },
+            {
+              "id": "1094c158-41b2-416e-857d-771d08108b02",
+              "name": "action",
+              "value": "Schedule urgent check-in",
+              "type": "string"
+            },
+            {
+              "id": "c6484f62-50a2-4d06-b160-758ff5e7bda8",
+              "name": "priority",
+              "value": "HIGH",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        864,
+        96
+      ],
+      "id": "90d8b752-8b34-492f-8d7a-fd31aa8d5a41",
+      "name": "At Risk"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "92a06d57-c500-4683-8b0e-f031eb46d8f4",
+              "name": "riskLevel",
+              "value": "Healthy",
+              "type": "string"
+            },
+            {
+              "id": "a6aa2992-e481-4b61-8b66-c81031723143",
+              "name": "action",
+              "value": "Monthly check-in",
+              "type": "string"
+            },
+            {
+              "id": "203cf019-8330-4a5b-be19-da2b7b1f5881",
+              "name": "priority",
+              "value": "LOW",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        864,
+        304
+      ],
+      "id": "39006781-1016-481f-be78-2d506746489f",
+      "name": "Healthy"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1120,
+        192
+      ],
+      "id": "11b36ac8-0107-47eb-93f9-7617678af426",
+      "name": "Merge"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -96
+      ],
+      "id": "7777045c-80c8-4607-98fd-0f072cba7e40",
+      "name": "Run health check"
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "b8f4c66b-4d33-4fbe-84ec-1fba5d7f7c8b",
+      "name": "Fetch customer accounts"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nreturn items.map(item => {\n  const healthScore = Math.floor(Math.random() * 100);\n  return {\n    json: {\n      customerId: item.json.id,\n      customerName: item.json.name,\n      email: item.json.email,\n      company: item.json.company.name,\n      healthScore,\n      tier: healthScore < 40 ? 'critical' : healthScore < 60 ? 'at-risk' : 'healthy'\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        192
+      ],
+      "id": "967e829d-04db-468b-a881-557d4723c0b5",
+      "name": "Add health scores"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "432c74e2-9e7a-4baf-b8ed-14e288a122e5",
+              "leftValue": "={{ $json.healthScore }}",
+              "rightValue": 60,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        656,
+        192
+      ],
+      "id": "51b9b71a-a658-4a18-81b8-761091a55f11",
+      "name": "Route by risk level"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b2f915d6-d49b-444f-9bac-996659d8f0c2",
+              "name": "reportType",
+              "value": "TAM Daily Health Digest",
+              "type": "string"
+            },
+            {
+              "id": "bdcb1c79-67e4-44fe-b4d3-308b6533862b",
+              "name": "generatedAt",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1328,
+        192
+      ],
+      "id": "9a4dbeb2-31b6-4de9-8099-1b8495794f35",
+      "name": "Format digest output"
+    }
+  ],
+  "pinData": {
+    "Format digest output": [
+      {
+        "json": {
+          "customerId": 1,
+          "customerName": "Leanne Graham",
+          "email": "Sincere@april.biz",
+          "company": "Romaguera-Crona",
+          "healthScore": 0,
+          "tier": "critical",
+          "riskLevel": "At-Risk",
+          "action": "Schedule urgent check-in",
+          "priority": "HIGH",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.726Z"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "customerId": 3,
+          "customerName": "Clementine Bauch",
+          "email": "Nathan@yesenia.net",
+          "company": "Romaguera-Jacobson",
+          "healthScore": 3,
+          "tier": "critical",
+          "riskLevel": "At-Risk",
+          "action": "Schedule urgent check-in",
+          "priority": "HIGH",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.727Z"
+        },
+        "pairedItem": {
+          "item": 1
+        }
+      },
+      {
+        "json": {
+          "customerId": 5,
+          "customerName": "Chelsey Dietrich",
+          "email": "Lucio_Hettinger@annie.ca",
+          "company": "Keebler LLC",
+          "healthScore": 12,
+          "tier": "critical",
+          "riskLevel": "At-Risk",
+          "action": "Schedule urgent check-in",
+          "priority": "HIGH",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.729Z"
+        },
+        "pairedItem": {
+          "item": 2
+        }
+      },
+      {
+        "json": {
+          "customerId": 7,
+          "customerName": "Kurtis Weissnat",
+          "email": "Telly.Hoeger@billy.biz",
+          "company": "Johns Group",
+          "healthScore": 44,
+          "tier": "at-risk",
+          "riskLevel": "At-Risk",
+          "action": "Schedule urgent check-in",
+          "priority": "HIGH",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.730Z"
+        },
+        "pairedItem": {
+          "item": 3
+        }
+      },
+      {
+        "json": {
+          "customerId": 8,
+          "customerName": "Nicholas Runolfsdottir V",
+          "email": "Sherwood@rosamond.me",
+          "company": "Abernathy Group",
+          "healthScore": 28,
+          "tier": "critical",
+          "riskLevel": "At-Risk",
+          "action": "Schedule urgent check-in",
+          "priority": "HIGH",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.730Z"
+        },
+        "pairedItem": {
+          "item": 4
+        }
+      },
+      {
+        "json": {
+          "customerId": 9,
+          "customerName": "Glenna Reichert",
+          "email": "Chaim_McDermott@dana.io",
+          "company": "Yost and Sons",
+          "healthScore": 32,
+          "tier": "critical",
+          "riskLevel": "At-Risk",
+          "action": "Schedule urgent check-in",
+          "priority": "HIGH",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.731Z"
+        },
+        "pairedItem": {
+          "item": 5
+        }
+      },
+      {
+        "json": {
+          "customerId": 10,
+          "customerName": "Clementina DuBuque",
+          "email": "Rey.Padberg@karina.biz",
+          "company": "Hoeger LLC",
+          "healthScore": 26,
+          "tier": "critical",
+          "riskLevel": "At-Risk",
+          "action": "Schedule urgent check-in",
+          "priority": "HIGH",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.732Z"
+        },
+        "pairedItem": {
+          "item": 6
+        }
+      },
+      {
+        "json": {
+          "customerId": 2,
+          "customerName": "Ervin Howell",
+          "email": "Shanna@melissa.tv",
+          "company": "Deckow-Crist",
+          "healthScore": 78,
+          "tier": "healthy",
+          "riskLevel": "Healthy",
+          "action": "Monthly check-in",
+          "priority": "LOW",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.732Z"
+        },
+        "pairedItem": {
+          "item": 7
+        }
+      },
+      {
+        "json": {
+          "customerId": 4,
+          "customerName": "Patricia Lebsack",
+          "email": "Julianne.OConner@kory.org",
+          "company": "Robel-Corkery",
+          "healthScore": 95,
+          "tier": "healthy",
+          "riskLevel": "Healthy",
+          "action": "Monthly check-in",
+          "priority": "LOW",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.733Z"
+        },
+        "pairedItem": {
+          "item": 8
+        }
+      },
+      {
+        "json": {
+          "customerId": 6,
+          "customerName": "Mrs. Dennis Schulist",
+          "email": "Karley_Dach@jasper.info",
+          "company": "Considine-Lockman",
+          "healthScore": 78,
+          "tier": "healthy",
+          "riskLevel": "Healthy",
+          "action": "Monthly check-in",
+          "priority": "LOW",
+          "reportType": "TAM Daily Health Digest",
+          "generatedAt": "2026-06-28T19:50:14.733Z"
+        },
+        "pairedItem": {
+          "item": 9
+        }
+      }
+    ]
+  },
+  "connections": {
+    "At Risk": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Healthy": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Format digest output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run health check": {
+      "main": [
+        [
+          {
+            "node": "Fetch customer accounts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch customer accounts": {
+      "main": [
+        [
+          {
+            "node": "Add health scores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add health scores": {
+      "main": [
+        [
+          {
+            "node": "Route by risk level",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by risk level": {
+      "main": [
+        [
+          {
+            "node": "At Risk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Healthy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f27dfbe0-1683-44bd-887a-25cb5ab1330d",
+  "meta": {
+    "instanceId": "c1391077165e48187f60cb9997b6d2e7e3bb3ea0a7afebd077f71d9061c270b7"
+  },
+  "nodeGroups": [],
+  "id": "N7F3drIV4pl6jDOz",
+  "tags": []
+}
