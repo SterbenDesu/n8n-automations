@@ -27,10 +27,6 @@ One of the highest-value TAM activities is proactive risk identification — cat
 | Merge | Merge (Append) | Recombines both branches into a single item stream |
 | Format digest output | Edit Fields | Appends reportType and generatedAt timestamp to each record |
 
-### Screenshot
-
-![Customer Account Health Monitor workflow canvas](screenshot.png)
-
 ### How to import
 
 1. Download `Customer Account Health Monitor.json` from this repo
